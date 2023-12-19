@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  <style>
+    #upload-form {
+      width: 300px;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+      padding: 20px;
+      background: #eee;
+    }
+
+    #progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #ddd;
+    }
+
+    
+    #progress-bar-value {
+      height: 20px;
+      background: green;
+      width: 0%;
+    }
+
+    
+    #output {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>File Upload with Progress Bar</h1>
+
+  <form id="upload-form" method="post" enctype="multipart/form-data">
+    <input type="file" name="video" accept="video/*" required>
+    <input type="submit" value="Upload">
+  </form>
+
+  <div id="progress-bar">
+    <div id="progress-bar-value"></div>
+  </div>
+  <div id="output"></div>
+
+  <script>
+  
+    var form = document.getElementById("upload-form");
+
+  
+    form.addEventListener("submit", function(event) {
+  
+      event.preventDefault();
+      var fileInput = form.elements["video"];
+      var file = fileInput.files[0];
+      var formData = new FormData();
+      formData.append("video", file);
+      var xhr = new XMLHttpRequest();
+
+      xhr.open("POST", "upload.php");
+
+      xhr.addEventListener("load", function() {
+        if (xhr.status == 200) {
+          document.getElementById("output").innerHTML = xhr.responseText;
+        } else {
+          document.getElementById("output").innerHTML = "An error occurred while uploading the file.";
+        }
+      });
+      xhr.upload.addEventListener("progress", function(event) {
+        if (event.lengthComputable) {
+          var percent = (event.loaded / event.total) * 100;
+          document.getElementById("progress-bar-value").style.width = percent + "%";
+        }
+      });
+      xhr.send(formData);
+    });
+  </script>
+</body>
+</html>
