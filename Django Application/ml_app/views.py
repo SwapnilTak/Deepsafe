@@ -129,7 +129,8 @@ def im_plot(tensor):
 
 
 def predict(model,img,path = './', video_file_name=""):
-  fmap,logits = model(img.to('cuda'))
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  fmap, logits = model(img.to(device))
   img = im_convert(img[:,-1,:,:,:], video_file_name)
   params = list(model.parameters())
   weight_softmax = model.linear1.weight.detach().cpu().numpy()
@@ -243,7 +244,7 @@ def index(request):
                 request.session['file_name'] = os.path.join(settings.PROJECT_DIR, 'uploaded_videos','app','uploaded_videos', saved_video_file)
             request.session['sequence_length'] = sequence_length
             return redirect('ml_app:predict')
-        else:
+        else: 
             return render(request, index_template_name, {"form": video_upload_form})
 
 def predict_page(request):
@@ -262,16 +263,16 @@ def predict_page(request):
             print("Production file name",production_video_name)
         video_file_name_only = video_file_name.split('.')[0]
         video_dataset = validation_dataset(path_to_videos, sequence_length=sequence_length,transform= train_transforms)
-        model = Model(2).cuda()
+        model = Model(2).cpu() #.cuda() if gpu enabled
         model_name = os.path.join(settings.PROJECT_DIR,'models', get_accurate_model(sequence_length))
         models_location = os.path.join(settings.PROJECT_DIR,'models')
         path_to_model = os.path.join(settings.PROJECT_DIR, model_name)
-        model.load_state_dict(torch.load(path_to_model))
+        model.load_state_dict(torch.load(path_to_model, map_location=torch.device('cpu')))
         model.eval()
         start_time = time.time()
         # Start: Displaying preprocessing images
         print("<=== | Started Videos Splitting | ===>")
-        preprocessed_images = []
+        preprocessed_images = [] 
         faces_cropped_images = []
         cap = cv2.VideoCapture(video_file)
 
